@@ -1,12 +1,17 @@
 package vertical;
 
+import activemq.ActiveMQConnect;
+import activemq.Consumer;
+import activemq.Producer;
 import constants.ConstantsVertX;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
-import mongodb.ConnectMongoDB;
-import mongodb.MongoCRUD;
+import util.ConnectMongoDB;
+import controller.MongoCRUD;
+import org.apache.activemq.ActiveMQConnectionFactory;
 
 public class MainVertical extends AbstractVerticle {
     private static final int SERVER_PORT = ConstantsVertX.SERVER_PORT;
@@ -17,12 +22,20 @@ public class MainVertical extends AbstractVerticle {
         //conncet Mongo
         MongoClient mongoClient = ConnectMongoDB.connectMongoClient(vertx);
 
+        //conncet ACtiveMQ
+        ActiveMQConnectionFactory activeMQConnection = ActiveMQConnect.createActiveMQConnectionFactory();
+
         Router router = Router.router(vertx);
         router.route().handler(BodyHandler.create()).produces(APPLICATION_JSON);
-        router.post("/products/save").handler( ctx -> MongoCRUD.save(mongoClient, ctx));
+        router.post("/products/save").handler( ctx -> {
+            JsonObject product = ctx.getBodyAsJson();
+            MongoCRUD.save(mongoClient, ctx);
+        });
         router.get("/products").handler( ctx -> MongoCRUD.getAll(mongoClient, ctx));
-        router.get("/products/update").handler( ctx -> MongoCRUD.update(mongoClient, ctx));
-        router.get("/products/delete").handler( ctx -> MongoCRUD.delete(mongoClient, ctx));
+        router.put("/products/update").handler( ctx -> MongoCRUD.update(mongoClient, ctx));
+        router.delete("/products/delete").handler( ctx -> MongoCRUD.delete(mongoClient, ctx));
+        router.post("/message/enqueue").handler( ctx -> Producer.sendMessage(activeMQConnection, ctx));
+        router.post("/message/dequeue").handler( ctx -> Consumer.receiveMessage(activeMQConnection, ctx));
 
         vertx.createHttpServer().requestHandler(router)
                 .listen(SERVER_PORT, rs -> {

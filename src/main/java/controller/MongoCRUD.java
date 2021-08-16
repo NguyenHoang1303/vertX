@@ -12,7 +12,7 @@ import util.ConnectMongoDB;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SmartPhoneController {
+public class MongoCRUD {
     private static final String COLLECTION_NAME = ConstantsVertX.COLLECTION_NAME;
     private static final String MESSAGE_FAIL = ConstantsVertX.MESSAGE_FAIL;
     private static final String MESSAGE_SUCCESS = ConstantsVertX.MESSAGE_SUCCESS;

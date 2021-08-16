@@ -1,4 +1,4 @@
-package mongodb;
+package util;
 
 import constants.ConstantsVertX;
 import io.vertx.core.Vertx;
