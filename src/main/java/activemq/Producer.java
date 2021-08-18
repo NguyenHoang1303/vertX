@@ -5,6 +5,7 @@ import io.vertx.ext.web.RoutingContext;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.jms.pool.PooledConnectionFactory;
 import util.APIRespone;
+import util.ActiveMQConnect;
 
 import javax.jms.*;
 
@@ -32,7 +33,7 @@ public class Producer {
             final MessageProducer producer = producerSession.createProducer(producerDestination);
             producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
             // Create a message.
-            final String text = routingContext.getBodyAsJson().toString();
+            final String text = routingContext.getBody().toString();
             final TextMessage producerMessage = producerSession.createTextMessage(text);
             // Send the message.
             producer.send(producerMessage);

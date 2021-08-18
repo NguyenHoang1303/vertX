@@ -1,4 +1,4 @@
-package activemq;
+package util;
 
 import constants.ConstantsVertX;
 import org.apache.activemq.ActiveMQConnectionFactory;

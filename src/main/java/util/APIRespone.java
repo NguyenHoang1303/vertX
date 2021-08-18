@@ -16,6 +16,12 @@ public class APIRespone {
                 .end(this.result);
     }
 
+
+    public APIRespone(String result, int number) {
+        this.result = result;
+        this.number = number;
+    }
+
     public int getNumber() {
         return number;
     }
