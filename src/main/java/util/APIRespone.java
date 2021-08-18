@@ -1,4 +1,4 @@
-package vertical;
+package util;
 
 import constants.ConstantsVertX;
 import io.vertx.ext.web.RoutingContext;

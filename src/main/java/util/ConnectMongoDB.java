@@ -1,4 +1,4 @@
-package mongodb;
+package util;
 
 import constants.ConstantsVertX;
 import io.vertx.core.Vertx;
@@ -10,7 +10,8 @@ public class ConnectMongoDB {
     private static final String URI_MONGODB = ConstantsVertX.URI_MONGODB;
     private static final String DB_NAME = ConstantsVertX.DB_NAME;
 
-    public static MongoClient connectMongoClient(Vertx vertx) {
+    public static MongoClient connectMongoClient() {
+        Vertx vertx = Vertx.vertx();
         JsonObject jsonObject = new JsonObject()
                 .put("connection_string", URI_MONGODB)
                 .put("db_name", DB_NAME);
