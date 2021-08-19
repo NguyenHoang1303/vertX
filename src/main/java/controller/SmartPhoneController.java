@@ -1,9 +1,8 @@
 package controller;
 
-import util.ActiveMQConnect;
 import activemq.Consumer;
 import activemq.Producer;
-import constants.ConstantsVertX;
+import constants.Constants;
 import entity.SmartPhone;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
@@ -11,7 +10,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import model.SmartPhoneModel;
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import util.APIRespone;
@@ -22,30 +20,31 @@ import java.util.Set;
 
 public class SmartPhoneController extends AbstractVerticle {
 
-    private static final int SERVER_PORT = ConstantsVertX.SERVER_PORT;
-    private static final String APPLICATION_JSON = ConstantsVertX.APPLICATION_JSON;
-    private static final String MESSAGE_FAIL = ConstantsVertX.MESSAGE_FAIL;
-    private static final String MESSAGE_SUCCESS = ConstantsVertX.MESSAGE_SUCCESS;
-    private static final int STATUS_OK = ConstantsVertX.STATUS_OK;
-    private static final int STATUS_FAIL = ConstantsVertX.STATUS_FAIL;
-
     @Override
     public void start() {
-        //conncet ACtiveMQ
-        ActiveMQConnectionFactory activeMQConnection = ActiveMQConnect.createActiveMQConnectionFactory();
+
         Router router = Router.router(vertx);
-        router.route().handler(BodyHandler.create()).produces(APPLICATION_JSON);
-        router.post("/products/save").handler(this::save);
+        router.route().handler(BodyHandler.create()).produces(Constants.APPLICATION_JSON);
+        router.post("/products/save").handler(context -> {
+            APIRespone apiRespone = new APIRespone(Constants.MESSAGE_FAIL, Constants.STATUS_FAIL);
+            JsonObject object = context.getBodyAsJson();
+            Document document = Document.parse(object.toString());
+            save(document);
+            context.response()
+                    .putHeader("content-type", "application/json")
+                    .setStatusCode(200)
+                    .end(document.toJson());
+        });
         router.get("/products").handler(this::getAll);
         router.put("/products/update").handler(this::updateById);
         router.delete("/products/delete").handler(this::deleteById);
-        router.post("/message/enqueue").handler(ctx -> Producer.sendMessage(activeMQConnection, ctx));
-        router.post("/message/dequeue").handler(ctx -> Consumer.receiveMessage(activeMQConnection, ctx));
+        router.post("/message/enqueue").handler(Producer::sendMessage);
+        router.post("/message/dequeue").handler(Consumer::receiveMessage);
 
         vertx.createHttpServer().requestHandler(router)
-                .listen(SERVER_PORT, rs -> {
+                .listen(Constants.SERVER_PORT, rs -> {
                     if (rs.succeeded()) {
-                        System.out.println("HTTP sever port " + SERVER_PORT);
+                        System.out.println("HTTP sever port " + Constants.SERVER_PORT);
                     } else {
                         System.err.println("cloud not start Http server: " + rs.cause());
                     }
@@ -58,20 +57,20 @@ public class SmartPhoneController extends AbstractVerticle {
     }
 
     private void deleteById(RoutingContext context) {
-        APIRespone apiRespone = new APIRespone(MESSAGE_FAIL, STATUS_FAIL);
+        APIRespone apiRespone = new APIRespone(Constants.MESSAGE_FAIL, Constants.STATUS_FAIL);
         JsonObject object = context.getBodyAsJson();
         String id = object.getString("_id");
         Document queryId = new Document();
         queryId.append("_id", new ObjectId(id));
         SmartPhoneModel smartPhoneModel = new SmartPhoneModel();
         smartPhoneModel.delete(queryId);
-        apiRespone.setResult(MESSAGE_SUCCESS);
-        apiRespone.setNumber(STATUS_OK);
+        apiRespone.setResult(Constants.MESSAGE_SUCCESS);
+        apiRespone.setNumber(Constants.STATUS_OK);
         apiRespone.responeHandle(context);
     }
 
     private void updateById(RoutingContext context) {
-        APIRespone apiRespone = new APIRespone(MESSAGE_FAIL, STATUS_FAIL);
+        APIRespone apiRespone = new APIRespone(Constants.MESSAGE_FAIL, Constants.STATUS_FAIL);
         JsonObject object = context.getBodyAsJson();
         String id = object.getString("_id");
         Document queryId = new Document();
@@ -79,35 +78,26 @@ public class SmartPhoneController extends AbstractVerticle {
         Document updateDocument = new Document();
         Set<String> listKey = object.fieldNames();
         for (String key: listKey) {
-            if (key.equals("_id")) break;
+            if (key.equals("_id")) continue;
             updateDocument.append(key,object.getString(key));
         }
         SmartPhoneModel smartPhoneModel = new SmartPhoneModel();
         smartPhoneModel.updateById(queryId, updateDocument);
-        apiRespone.setNumber(STATUS_OK);
-        apiRespone.setResult(MESSAGE_SUCCESS);
+        apiRespone.setNumber(Constants.STATUS_OK);
+        apiRespone.setResult(Constants.MESSAGE_SUCCESS);
         apiRespone.responeHandle(context);
     }
 
 
 
-    public void save(RoutingContext context) {
-        APIRespone apiRespone = new APIRespone(MESSAGE_FAIL, STATUS_FAIL);
-        JsonObject object = context.getBodyAsJson();
-        Document document = new Document();
-        Set<String> list = object.fieldNames();
-        for (String setName: list) {
-            document.append(setName,object.getString(setName));
-        }
+    public void save(Document document) {
         SmartPhoneModel smartPhoneModel = new SmartPhoneModel();
         smartPhoneModel.save(document);
-        apiRespone.setNumber(STATUS_OK);
-        apiRespone.setResult(MESSAGE_SUCCESS);
-        apiRespone.responeHandle(context);
+
     }
 
     public void getAll(RoutingContext context) {
-        APIRespone apiRespone = new APIRespone(MESSAGE_FAIL, STATUS_FAIL);
+        APIRespone apiRespone = new APIRespone(Constants.MESSAGE_FAIL, Constants.STATUS_FAIL);
         SmartPhoneModel smartPhoneModel = new SmartPhoneModel();
         List<SmartPhone> list = smartPhoneModel.getAll();
         List<String> resultList = new ArrayList<>();
@@ -119,7 +109,7 @@ public class SmartPhoneController extends AbstractVerticle {
                             .append("price", phone.getPrice());
             resultList.add(document.toJson());
         }
-        apiRespone.setNumber(STATUS_OK);
+        apiRespone.setNumber(Constants.STATUS_OK);
         apiRespone.setResult(resultList.toString());
         apiRespone.responeHandle(context);
     }

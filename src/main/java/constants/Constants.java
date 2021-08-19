@@ -1,6 +1,6 @@
 package constants;
 
-public class ConstantsVertX {
+public class Constants {
 
     //MongoDB
     public static final int SERVER_PORT = 8080;

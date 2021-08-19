@@ -1,13 +1,13 @@
 package util;
 
-import constants.ConstantsVertX;
+import constants.Constants;
 import io.vertx.ext.web.RoutingContext;
 
 public class APIRespone {
     private String result;
     private int number;
-    private static final String APPLICATION_JSON = ConstantsVertX.APPLICATION_JSON;
-    private static final String CONTENT_TYPE = ConstantsVertX.CONTENT_TYPE;
+    private static final String APPLICATION_JSON = Constants.APPLICATION_JSON;
+    private static final String CONTENT_TYPE = Constants.CONTENT_TYPE;
 
     public void responeHandle(RoutingContext routingContext){
         routingContext.response()
